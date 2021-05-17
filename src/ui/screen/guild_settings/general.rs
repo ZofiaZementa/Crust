@@ -43,11 +43,12 @@ impl Tab for GeneralTab {
 
     fn content(&mut self, client: &Client) -> Element<'_, Message> {
         let content= Container::new(
-            Column::new().push(
+            column(vec![
                 TextInput::new(&mut self.name_edit_state, "Name",
-                               client.guilds.get(&self.guild_id).unwrap().name.as_str(), |_| ())
+                               client.guilds.get(&self.guild_id).unwrap().name.as_str(), |_| ()).into()]
             )
-        ).into();
-        content.map(Message::General)
+        );
+
+        content.into()
     }
 }
