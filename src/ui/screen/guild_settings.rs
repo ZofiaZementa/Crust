@@ -82,7 +82,7 @@ impl GuildSettings {
         let position = iced_aw::TabBarPosition::Top;
 
         Tabs::new(self.active_tab, Message::TabSelected)
-            .push(self.general_tab.tab_label(), self.general_tab.view(client))
+            .push(self.general_tab.tab_label(), self.general_tab.view(client, theme))
             .tab_bar_style(theme)
             .icon_font(ICON_FONT)
             .tab_bar_position(position)
@@ -102,10 +102,10 @@ trait Tab {
 
     fn tab_label(&self) -> TabLabel;
 
-    fn view(&mut self, client: &Client) -> Element<'_, Message> {
+    fn view(&mut self, client: &Client, theme: Theme) -> Element<'_, Message> {
         let column = Column::new()
             .spacing(20)
-            .push(self.content(client));
+            .push(self.content(client, theme));
 
         Container::new(column)
             .width(Length::Fill)
@@ -113,8 +113,9 @@ trait Tab {
             .align_x(Align::Center)
             .align_y(Align::Center)
             .padding(TAB_PADDING)
+            .style(theme)
             .into()
     }
 
-    fn content(&mut self, client: &Client) -> Element<'_, Message>;
+    fn content(&mut self, client: &Client, theme: Theme) -> Element<'_, Message>;
 }

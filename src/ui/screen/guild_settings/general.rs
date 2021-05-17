@@ -1,12 +1,14 @@
 use iced::{Column, Container, Element, Radio, Text};
 use iced_aw::{TabLabel};
-use crate::ui::screen::guild_settings::{Tab, Message, Icon};
+use crate::ui::screen::guild_settings::{Tab, Message as ParentMessage, Icon};
 use crate::client::Client;
 use crate::ui::component::*;
 use tracing::Instrument;
+use crate::ui::style::Theme;
 
 #[derive(Debug, Clone)]
 pub enum GeneralMessage {
+    Nothing
 }
 
 #[derive(Debug)]
@@ -25,7 +27,7 @@ impl GeneralTab {
 
     pub fn update(&mut self, message: GeneralMessage) {
         match message {
-
+            _ => {}
         }
     }
 }
@@ -41,11 +43,14 @@ impl Tab for GeneralTab {
         TabLabel::IconText(Icon::CogAlt.into(), self.title())
     }
 
-    fn content(&mut self, client: &Client) -> Element<'_, Message> {
+    fn content(&mut self, client: &Client, theme: Theme) -> Element<'_, ParentMessage> {
         let content= Container::new(
             column(vec![
                 TextInput::new(&mut self.name_edit_state, "Name",
-                               client.guilds.get(&self.guild_id).unwrap().name.as_str(), |_| ()).into()]
+                               client.guilds.get(&self.guild_id).unwrap().name.as_str(),
+                               |_| ParentMessage::General(GeneralMessage::Nothing))
+                    .style(theme)
+                    .into()]
             )
         );
 
