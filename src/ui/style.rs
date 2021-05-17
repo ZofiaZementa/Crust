@@ -1,8 +1,7 @@
 use crate::color;
-use iced::{
-    button, checkbox, container, pick_list, progress_bar, radio, rule, scrollable, slider,
-    text_input, Color,
-};
+use iced::{button, checkbox, container, pick_list, progress_bar, radio, rule, scrollable, slider, text_input, Color, Background};
+use iced_aw::tabs;
+use iced_aw::style::tab_bar::Style;
 
 pub const DEF_SIZE: u16 = 20;
 pub const MESSAGE_TIMESTAMP_SIZE: u16 = 14;
@@ -81,6 +80,24 @@ impl Default for Theme {
             secondary: false,
             round: false,
             embed: false,
+        }
+
+    }
+}
+
+
+pub struct TabBar;
+
+
+
+
+
+impl From<Theme> for Box<dyn tabs::StyleSheet> {
+    fn from(theme: Theme) -> Self {
+        if theme.dark {
+            dark::TabBar.into()
+        } else {
+            light::TabBar.into()
         }
     }
 }
@@ -227,7 +244,50 @@ impl From<Theme> for Box<dyn iced_aw::card::StyleSheet> {
 
 mod light {
     use crate::color;
-    use iced::{button, Color, Vector};
+    use iced::{button, Color, Vector, Background};
+    use iced_aw::tabs;
+    use iced_aw::style::tab_bar::Style;
+
+    pub struct TabBar;
+
+    impl tabs::StyleSheet for TabBar {
+        fn active(&self, is_selected: bool) -> tabs::Style {
+            let tab_label_background = if is_selected {
+                Background::Color(Color::BLACK)
+            } else {
+                Background::Color(Color::WHITE)
+            };
+
+            let text_color = if is_selected {
+                Color::WHITE
+            } else {
+                Color::BLACK
+            };
+
+            Style {
+                background: None,
+                border_color: None,
+                border_width: 0.0,
+                tab_label_background,
+                tab_label_border_color: Color::TRANSPARENT,
+                tab_label_border_width: 0.0,
+                icon_color: text_color,
+                text_color,
+            }
+        }
+
+        fn hovered(&self, is_selected: bool) -> tabs::Style {
+            let tab_label_background = Background::Color(Color::BLACK);
+            let text_color = Color::WHITE;
+
+            Style {
+                tab_label_background,
+                icon_color: text_color,
+                text_color,
+                .. self.active(is_selected)
+            }
+        }
+    }
 
     pub struct Button;
 
@@ -254,15 +314,55 @@ mod light {
 
 mod dark {
     use crate::color;
-    use iced::{
-        button, checkbox, container, pick_list, progress_bar, radio, rule, scrollable, slider,
-        text_input, Color,
-    };
-    use iced_aw::{card, modal};
+    use iced::{button, checkbox, container, pick_list, progress_bar, radio, rule, scrollable, slider, text_input, Color, Background};
+    use iced_aw::{card, modal, tabs};
+    use iced_aw::style::tab_bar::Style;
 
     const DARK_BG: Color = color!(0x36, 0x39, 0x3F);
     const BRIGHT_BG: Color = color!(0x44, 0x48, 0x4F);
     const ACCENT: Color = color!(0x60, 0x64, 0x6B);
+
+    pub struct TabBar;
+
+    impl tabs::StyleSheet for TabBar {
+        fn active(&self, is_selected: bool) -> tabs::Style {
+            let tab_label_background = if is_selected {
+                Background::Color(DARK_BG)
+            } else {
+                Background::Color(BRIGHT_BG)
+            };
+
+            let text_color = if is_selected {
+                Color::WHITE
+            } else {
+                Color::BLACK
+            };
+
+            Style {
+                background: None,
+                border_color: None,
+                border_width: 0.0,
+                tab_label_background,
+                tab_label_border_color: Color::TRANSPARENT,
+                tab_label_border_width: 0.0,
+                icon_color: text_color,
+                text_color,
+            }
+        }
+
+        fn hovered(&self, is_selected: bool) -> tabs::Style {
+            let tab_label_background = Background::Color(DARK_BG);
+            let text_color = Color::WHITE;
+
+            Style {
+                tab_label_background,
+                icon_color: text_color,
+                text_color,
+                .. self.active(is_selected)
+            }
+        }
+    }
+
 
     pub struct Card;
 

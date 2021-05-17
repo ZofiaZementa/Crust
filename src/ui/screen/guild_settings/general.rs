@@ -1,29 +1,49 @@
-use iced::{Command, Element};
+use iced::{Column, Container, Element, Radio, Text};
+use iced_aw::{TabLabel};
+use crate::ui::screen::guild_settings::{Tab, Message, Icon};
 
-use crate::{
-    client::{error::ClientError, Client},
-    ui::{component::*, style::*},
-};
 
-#[derive(Debug)]
-pub enum Message {}
-
-#[derive(Debug)]
-pub struct General {
-    guild_id: u64,
-    name_edit_state: text_input::State,
+#[derive(Debug, Clone)]
+pub enum GeneralMessage {
 }
 
-impl General {
-    pub fn view(&mut self, theme: Theme, client: &Client) -> Element<Message> {
-        label!("asd").into()
+#[derive(Debug)]
+pub struct GeneralTab {
+}
+
+impl GeneralTab {
+    pub fn new() -> Self {
+        GeneralTab {
+        }
     }
 
-    pub fn update(&mut self, msg: Message, client: &Client) -> Command<super::Message> {
-        Command::none()
+    pub fn update(&mut self, message: GeneralMessage) {
+        match message {
+
+        }
+    }
+}
+
+impl Tab for GeneralTab {
+
+    fn title(&self) -> String {
+        String::from("Settings")
     }
 
-    pub fn on_error(&mut self, error: ClientError) -> Command<super::Message> {
-        Command::none()
+    fn tab_label(&self) -> TabLabel {
+        //TabLabel::Text(self.title())
+        TabLabel::IconText(Icon::CogAlt.into(), self.title())
+    }
+
+    fn content(&mut self) -> Element<'_, Message> {
+        let content: Element<'_, GeneralMessage> = Container::new(
+            Column::new()
+                .push(
+                    crate::label!("HELP ME!")
+                )
+            )
+            .into();
+
+        content.map(Message::General)
     }
 }
