@@ -9,6 +9,7 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub enum GeneralMessage {
+    NameEdited(String),
     Nothing
 }
 
@@ -28,6 +29,9 @@ impl GeneralTab {
 
     pub fn update(&mut self, message: GeneralMessage) {
         match message {
+            GeneralMessage::NameEdited(text) => {
+                
+            },
             _ => {}
         }
     }
@@ -36,7 +40,7 @@ impl GeneralTab {
 impl Tab for GeneralTab {
 
     fn title(&self) -> String {
-        String::from("Settings")
+        String::from("General")
     }
 
     fn tab_label(&self) -> TabLabel {
@@ -49,7 +53,7 @@ impl Tab for GeneralTab {
             column(vec![
                 TextInput::new(&mut self.name_edit_state, "Name",
                                client.guilds.get(&self.guild_id).unwrap().name.as_str(),
-                               |_| ParentMessage::General(GeneralMessage::Nothing))
+                               |text| ParentMessage::General(GeneralMessage::NameEdited(text)))
                     .style(theme)
                     .into()]
             )

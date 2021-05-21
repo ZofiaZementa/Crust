@@ -35,12 +35,12 @@ impl InviteTab {
 impl Tab for InviteTab {
 
     fn title(&self) -> String {
-        String::from("Settings")
+        String::from("Invites")
     }
 
     fn tab_label(&self) -> TabLabel {
         //TabLabel::Text(self.title())
-        TabLabel::IconText(Icon::CogAlt.into(), self.title())
+        TabLabel::IconText(Icon::Heart.into(), self.title())
     }
 
     fn content(&mut self, _: &Client, theme: Theme) -> Element<'_, ParentMessage> {
