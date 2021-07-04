@@ -3,7 +3,7 @@ use super::super::Screen as TopLevelScreen;
 use super::GuildMetaData;
 use crate::client::Client;
 use crate::component::*;
-use crate::screen::guild_settings::{Icon, Message as ParentMessage, Tab};
+use crate::screen::guild_settings::{Message as ParentMessage, Tab};
 use crate::screen::main::Message::GuildChanged;
 use crate::screen::select_upload_files;
 use crate::screen::Message::MessageEdited;
@@ -17,6 +17,7 @@ use super::super::{
 use crate::client::error::{ClientResult, ClientError};
 use client::harmony_rust_sdk::client::api::chat::guild::{update_guild_information, UpdateGuildInformation};
 use std::error::Error;
+use iced_aw::Icon;
 
 #[derive(Debug, Clone)]
 pub enum GeneralMessage {
@@ -145,7 +146,7 @@ impl Tab for GeneralTab {
 
     fn tab_label(&self) -> TabLabel {
         //TabLabel::Text(self.title())
-        TabLabel::IconText(Icon::CogAlt.into(), self.title())
+        TabLabel::IconText(Icon::Gear.into(), self.title())
     }
 
     fn content(

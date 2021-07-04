@@ -21,34 +21,8 @@ use super::Screen as TopLevelScreen;
 use client::harmony_rust_sdk::client::api::chat::invite::{
     get_guild_invites, get_guild_invites_response::Invite, GetGuildInvitesRequest,
 };
-use iced_aw::native::tabs::Renderer;
-
 const TAB_PADDING: u16 = 16;
-
-const ICON_FONT: Font = iced::Font::External {
-    name: "Icons",
-    bytes: include_bytes!("../fonts/icons.ttf"),
-};
-
-enum Icon {
-    User,
-    Heart,
-    Calc,
-    CogAlt,
-    Back,
-}
-
-impl From<Icon> for char {
-    fn from(icon: Icon) -> Self {
-        match icon {
-            Icon::User => '\u{E800}',
-            Icon::Heart => '\u{E801}',
-            Icon::Calc => '\u{F1EC}',
-            Icon::CogAlt => '\u{E802}',
-            Icon::Back => '\u{F55A}',
-        }
-    }
-}
+use iced_aw::ICON_FONT;
 
 #[derive(Debug)]
 pub struct GuildMetaData {
