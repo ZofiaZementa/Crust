@@ -65,7 +65,10 @@ impl InviteTab {
                 let name = self.invite_name_value.clone();
                 return Command::perform(
                     async move {
-                        let uses: i32 = uses.parse().expect("Possible uses has to be int");
+                        let uses: i32 = match uses.parse() {
+                            Ok(val) => val,
+                            Err(err) => return Err(ClientError::Custom(err.to_string()))
+                        };
                         let request = CreateInviteRequest {
                             name,
                             possible_uses: uses,
