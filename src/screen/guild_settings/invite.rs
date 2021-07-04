@@ -43,7 +43,6 @@ pub struct InviteTab {
 }
 
 // TODO delete invites
-// TODO clear invite field on succesful invite creation
 
 impl InviteTab {
     pub fn update(
@@ -91,6 +90,8 @@ impl InviteTab {
                 };
                 if let Some(invites) = &mut meta_data.invites {
                     invites.push(new_invite);
+                    self.invite_name_value.clear();
+                    self.invite_uses_value.clear();
                 } else {
                     meta_data.invites = Some(vec![new_invite]);
                 }
