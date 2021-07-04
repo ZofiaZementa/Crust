@@ -5,7 +5,7 @@ use crate::{
     length, label_button, space,
     component::*,
     screen::{
-        guild_settings::{Icon, Message as ParentMessage, Tab},
+        guild_settings::{Message as ParentMessage, Tab},
         Client, Message as TopLevelMessage, ScreenMessage as TopLevelScreenMessage
     },
     style::Theme,
@@ -18,11 +18,11 @@ use client::harmony_rust_sdk::{
     },
 };
 use iced::{Column, Element};
-use iced_aw::TabLabel;
+use iced_aw::{TabLabel, Icon};
 
 const POS_USES_WIDTH: u16 = 200;
 const USES_WIDTH: u16 = 80;
-const DEL_WIDTH: u16 = 40;
+const DEL_WIDTH: u16 = 30;
 
 #[derive(Debug, Clone)]
 pub enum InviteMessage {
@@ -192,7 +192,7 @@ impl Tab for InviteTab {
                         label!(cur_invite.use_count.to_string())
                             .width(length!(= USES_WIDTH))
                             .into(),
-                        Button::new(del_but_state, label!("Del"))
+                        Button::new(del_but_state, icon(Icon::Trash))
                             .width(length!(= DEL_WIDTH))
                             .style(theme)
                             .on_press(ParentMessage::Invite(InviteMessage::DeleteInvitePressed(n)))
