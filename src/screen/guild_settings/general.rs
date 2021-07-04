@@ -33,8 +33,7 @@ pub struct GeneralTab {
     name_edit_field: String,
     name_edit_but_state: button::State,
     icon_edit_but_state: button::State,
-    loading_text: String,
-    loading_show: bool,
+    loading_text: Option<String>,
     guild_id: u64,
 }
 
@@ -45,8 +44,7 @@ impl GeneralTab {
             name_edit_field: Default::default(),
             name_edit_but_state: Default::default(),
             icon_edit_but_state: Default::default(),
-            loading_text: Default::default(),
-            loading_show: false,
+            loading_text: None,
             guild_id,
         }
     }
@@ -63,8 +61,7 @@ impl GeneralTab {
                 self.name_edit_field = text;
             }
             GeneralMessage::NameButPressed() => {
-                self.loading_show = true;
-                self.loading_text = "Updating ...".parse().unwrap();
+                self.loading_text = Some("Updating ...".parse().unwrap());
                 let current_name = self.name_edit_field.clone();
                 let client_inner = client.inner().clone();
                 let guild_id_inner = guild_id.clone();
@@ -94,12 +91,11 @@ impl GeneralTab {
                 );
             }
             GeneralMessage::NameButErr(err) => {
-                self.loading_show = false;
+                self.loading_text = None;
                 TopLevelMessage::Error(Box::new(err.into()));
             }
             GeneralMessage::NameButSuccess() => {
-                self.loading_text = "Name updated".to_string();
-                self.loading_show = true;
+                self.loading_text = Some("Name updated".to_string());
             }
             GeneralMessage::UploadGuildImage() => {
                 let inner = client.inner().clone();
@@ -121,7 +117,6 @@ impl GeneralTab {
                         result.map_or_else(
                             |err| TopLevelMessage::Error(Box::new(err)),
                             |_| {
-                                println!("BLALALA");
                                 TopLevelMessage::Nothing
                             },
                         )
@@ -200,11 +195,12 @@ impl Tab for GeneralTab {
             .style(theme)
             .into();
 
-        if !self.loading_show {
+        if let Some(ldg_text) = &self.loading_text {
             let content = Container::new(column(vec![
                 label!("Icon").into(),
                 ui_image_but,
                 label!("Name").into(),
+                label!(ldg_text).into(),
                 ui_text_input_row,
             ]));
             content.into()
@@ -212,7 +208,6 @@ impl Tab for GeneralTab {
             let content = Container::new(column(vec![
                 label!("Icon").into(),
                 ui_image_but,
-                label!(&self.loading_text).into(),
                 label!("Name").into(),
                 ui_text_input_row,
             ]));

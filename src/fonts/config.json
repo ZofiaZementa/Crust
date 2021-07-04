@@ -35,6 +35,12 @@
       "css": "cancel",
       "code": 59395,
       "src": "fontawesome"
+    },
+    {
+      "uid": "0c2eba66c13c11eb85290242ac130003",
+      "css": "backspace",
+      "code": 62810,
+      "src": "fontawesome"
     }
   ]
 }
