@@ -1,7 +1,10 @@
 use iced::{Align, Column, Container, Element, Font, Length, Sandbox,
            Settings, Text, };
 use iced_aw::{Tabs, TabLabel};
-use crate::screen::Message as TopLevelMessage;
+use crate::screen::{
+    ScreenMessage as TopLevelScreenMessage,
+    Message as TopLevelMessage,
+};
 mod general;
 mod invite;
 use crate::screen::guild_settings::{
@@ -75,24 +78,24 @@ impl GuildSettings {
         match message {
             Message::TabSelected(selected) => self.active_tab = selected,
             Message::General(message) => {
-                self.general_tab.update(message, client, self.guild_id);
+                return self.general_tab.update(message, client, self.guild_id);
             }
             _ => {}
         }
         Command::none()
     }
 
-    pub fn view(&mut self, theme: Theme, client: &Client) -> Element<'_, Message> {
+    pub fn view(&mut self, theme: Theme, client: &Client, thumbnail_cache: &ThumbnailCache) -> Element<'_, Message> {
         let position = iced_aw::TabBarPosition::Top;
 
         Tabs::new(self.active_tab, Message::TabSelected)
             .push(
                 self.general_tab.tab_label(),
-                self.general_tab.view(client, theme),
+                self.general_tab.view(client, theme, thumbnail_cache),
             )
             .push(
                 self.invite_tab.tab_label(),
-                self.invite_tab.view(client, theme),
+                self.invite_tab.view(client, theme, thumbnail_cache),
             )
             .tab_bar_style(theme)
             .icon_font(ICON_FONT)
@@ -112,8 +115,8 @@ trait Tab {
 
     fn tab_label(&self) -> TabLabel;
 
-    fn view(&mut self, client: &Client, theme: Theme) -> Element<'_, Message> {
-        let column = Column::new().spacing(20).push(self.content(client, theme));
+    fn view(&mut self, client: &Client, theme: Theme, thumbnail_cache: &ThumbnailCache) -> Element<'_, Message> {
+        let column = Column::new().spacing(20).push(self.content(client, theme, thumbnail_cache));
 
         Container::new(column)
             .width(Length::Fill)
@@ -125,5 +128,5 @@ trait Tab {
             .into()
     }
 
-    fn content(&mut self, client: &Client, theme: Theme) -> Element<'_, Message>;
+    fn content(&mut self, client: &Client, theme: Theme, thumbnail_cache: &ThumbnailCache) -> Element<'_, Message>;
 }

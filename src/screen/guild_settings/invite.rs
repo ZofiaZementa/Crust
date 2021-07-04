@@ -12,7 +12,6 @@ use harmony_rust_sdk::{
 };
 
 
-
 #[derive(Debug, Clone)]
 pub enum InviteMessage {
     Nothing,
@@ -44,7 +43,7 @@ impl Tab for InviteTab {
         TabLabel::IconText(Icon::Heart.into(), self.title())
     }
 
-    fn content(&mut self, _: &Client, theme: Theme) -> Element<'_, ParentMessage> {
+    fn content(&mut self, _: &Client, theme: Theme, thumbnailCache: &ThumbnailCache) -> Element<'_, ParentMessage> {
         let content = Container::new(
             row(vec![
                 TextInput::new(&mut self.invite_name_state,

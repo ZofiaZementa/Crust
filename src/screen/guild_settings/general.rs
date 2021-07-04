@@ -13,6 +13,8 @@ use super::super::{
 use crate::client::error::{ClientResult, ClientError};
 use harmony_rust_sdk::client::api::chat::guild::{update_guild_information, UpdateGuildInformation};
 use std::error::Error;
+use crate::screen::select_upload_files;
+use crate::screen::main::Message::GuildChanged;
 
 #[derive(Debug, Clone)]
 pub enum GeneralMessage {
@@ -20,6 +22,7 @@ pub enum GeneralMessage {
     NameButPressed(),
     NameButErr(ClientError),
     NameButSuccess(),
+    UploadGuildImage(),
     Nothing,
 }
 
@@ -28,6 +31,7 @@ pub struct GeneralTab {
     name_edit_state: text_input::State,
     name_edit_field: String,
     name_edit_but_state: button::State,
+    icon_edit_but_state: button::State,
     loading_text: String,
     loading_show: bool,
     guild_id: u64,
@@ -39,6 +43,7 @@ impl GeneralTab {
             name_edit_state: Default::default(),
             name_edit_field: Default::default(),
             name_edit_but_state: Default::default(),
+            icon_edit_but_state: Default::default(),
             loading_text: Default::default(),
             loading_show: false,
             guild_id,
@@ -50,7 +55,7 @@ impl GeneralTab {
         message: GeneralMessage,
         client: &Client,
         guild_id: u64,
-    ) -> Command<TopLevelScreenMessage> {
+    ) -> Command<TopLevelMessage> {
         match message {
             GeneralMessage::NameChanged(text) => {
                 self.name_edit_field = text;
@@ -61,7 +66,7 @@ impl GeneralTab {
                 let current_name = self.name_edit_field.clone();
                 let client_inner = client.inner().clone();
                 let guild_id_inner = guild_id.clone();
-                Command::perform(
+                return Command::perform(
                     async move {
                         let guild_info_req_builder = UpdateGuildInformation::new(guild_id_inner);
                         let guild_info_req = UpdateGuildInformation::new_guild_name(
@@ -82,7 +87,7 @@ impl GeneralTab {
                                     GeneralMessage::NameButSuccess(),
                                 ))
                             },
-                        );
+                        )
                     },
                 );
             }
@@ -93,6 +98,34 @@ impl GeneralTab {
             GeneralMessage::NameButSuccess() => {
                 self.loading_text = "Name updated".to_string();
                 self.loading_show = true;
+            }
+            GeneralMessage::UploadGuildImage() => {
+                let inner = client.inner().clone();
+                let content_store = client.content_store_arc();
+                return Command::perform(
+                    async move {
+                        let id = select_upload_files(&inner, content_store, true)
+                            .await?
+                            .remove(0)
+                            .id;
+                        let update_info = UpdateGuildInformation::new(guild_id);
+                        Ok(update_guild_information(
+                            &inner,
+                            UpdateGuildInformation::new_guild_picture(update_info, Some(id)),
+                        )
+                            .await?)
+                    },
+                    |result| {
+                        result.map_or_else(
+                            |err| TopLevelMessage::Error(Box::new(err)),
+                            |_|
+                                {
+                                    println!("BLALALA");
+                                    TopLevelMessage::Nothing
+                                },
+                        )
+                    },
+                );
             }
             _ => {}
         }
@@ -110,12 +143,14 @@ impl Tab for GeneralTab {
         TabLabel::IconText(Icon::CogAlt.into(), self.title())
     }
 
-    fn content(&mut self, client: &Client, theme: Theme) -> Element<'_, ParentMessage> {
+    fn content(&mut self, client: &Client, theme: Theme, thumbnail_cache: &ThumbnailCache) -> Element<'_, ParentMessage> {
+        let name_edit_but_state = &mut self.name_edit_but_state;
+        let guild = client.guilds.get(&self.guild_id).unwrap();
         let ui_text_input_row =
             row(vec![
                 TextInput::new(
                     &mut self.name_edit_state,
-                    client.guilds.get(&self.guild_id).unwrap().name.as_str(),
+                    guild.name.as_str(),
                     self.name_edit_field.as_str(),
                     |text| ParentMessage::General(GeneralMessage::NameChanged(text)),
                 )
@@ -123,20 +158,52 @@ impl Tab for GeneralTab {
                     .padding(PADDING / 2)
                     .width(length!(= 300))
                     .into(),
-                Button::new(&mut self.name_edit_but_state, label!["Update"])
+                Button::new(name_edit_but_state, label!["Update"])
                     .on_press(ParentMessage::General(GeneralMessage::NameButPressed()))
                     .style(theme)
                     .into(),
             ]).into();
 
+        let ui_update_guild_icon = fill_container(
+            guild
+                .picture
+                .as_ref()
+                .map(|guild_picture| thumbnail_cache.thumbnails.get(guild_picture))
+                .flatten()
+                .map_or_else(
+                    || {
+                        Element::from(
+                            label!(guild
+                                .name
+                                .chars()
+                                .next()
+                                .unwrap_or('u')
+                                .to_ascii_uppercase())
+                                .size(30),
+                        )
+                    },
+                    |handle| Element::from(Image::new(handle.clone())),
+                ),
+        );
+
+        let ui_image_but = Button::new(&mut self.icon_edit_but_state, ui_update_guild_icon)
+                .on_press(ParentMessage::General(GeneralMessage::UploadGuildImage()))
+            .height((length!(= 50)))
+            .width((length!(= 50)))
+            .style(theme).into();
+
         if !self.loading_show {
             let content = Container::new(column(vec![
+                label!("Icon").into(),
+                ui_image_but,
                 label!("Name").into(),
                 ui_text_input_row,
             ]));
             content.into()
         } else {
             let content = Container::new(column(vec![
+                label!("Icon").into(),
+                ui_image_but,
                 label!(&self.loading_text).into(),
                 label!("Name").into(),
                 ui_text_input_row
