@@ -18,7 +18,7 @@ use crate::{
 };
 
 use super::Screen as TopLevelScreen;
-use harmony_rust_sdk::client::api::chat::invite::{
+use client::harmony_rust_sdk::client::api::chat::invite::{
     get_guild_invites, get_guild_invites_response::Invite, GetGuildInvitesRequest,
 };
 use iced_aw::native::tabs::Renderer;

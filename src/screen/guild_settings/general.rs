@@ -15,7 +15,7 @@ use super::super::{
     Message as TopLevelMessage,
 };
 use crate::client::error::{ClientResult, ClientError};
-use harmony_rust_sdk::client::api::chat::guild::{update_guild_information, UpdateGuildInformation};
+use client::harmony_rust_sdk::client::api::chat::guild::{update_guild_information, UpdateGuildInformation};
 use std::error::Error;
 
 #[derive(Debug, Clone)]
@@ -81,14 +81,14 @@ impl GeneralTab {
                     |result| {
                         result.map_or_else(
                             |err| {
-                                TopLevelScreenMessage::GuildSettings(ParentMessage::General(
+                                TopLevelMessage::ChildMessage(TopLevelScreenMessage::GuildSettings(ParentMessage::General(
                                     GeneralMessage::NameButErr(err.into()),
-                                ))
+                                )))
                             },
                             |_| {
-                                TopLevelScreenMessage::GuildSettings(ParentMessage::General(
+                                TopLevelMessage::ChildMessage(TopLevelScreenMessage::GuildSettings(ParentMessage::General(
                                     GeneralMessage::NameButSuccess(),
-                                ))
+                                )))
                             },
                         )
                     },

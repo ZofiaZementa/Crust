@@ -10,7 +10,7 @@ use crate::{
     },
     style::Theme,
 };
-use harmony_rust_sdk::{
+use client::harmony_rust_sdk::{
     api::exports::hrpc::url::Url,
     client::api::chat::invite::{
         create_invite, delete_invite, get_guild_invites_response::Invite, CreateInviteRequest,
