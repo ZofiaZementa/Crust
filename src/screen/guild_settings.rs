@@ -1,24 +1,23 @@
 mod general;
 mod invite;
 
-use iced::{Align, Column, Container, Element, Length};
-use iced_aw::{Tabs, TabLabel, ICON_FONT};
 use crate::{
+    client::{error::ClientError, Client},
+    component::*,
     screen::{
-        ScreenMessage as TopLevelScreenMessage,
-        Message as TopLevelMessage,
         guild_settings::{
             general::{GeneralMessage, GeneralTab},
             invite::{InviteMessage, InviteTab},
         },
+        Message as TopLevelMessage, ScreenMessage as TopLevelScreenMessage,
     },
-    client::{error::ClientError, Client},
-    component::*,
     style::*,
 };
 use client::harmony_rust_sdk::client::api::chat::invite::{
     get_guild_invites, get_guild_invites_response::Invite, GetGuildInvitesRequest,
 };
+use iced::{Align, Column, Container, Element, Length};
+use iced_aw::{TabLabel, Tabs, ICON_FONT};
 
 const TAB_PADDING: u16 = 16;
 
@@ -54,7 +53,7 @@ impl GuildSettings {
             invite_tab: InviteTab::default(),
             current_error: String::from(""),
             meta_data: GuildMetaData { invites: None },
-            back_button: Default::default()
+            back_button: Default::default(),
         }
     }
 
@@ -70,15 +69,12 @@ impl GuildSettings {
                         return Command::perform(
                             async move {
                                 let request = GetGuildInvitesRequest { guild_id };
-                                let invites =
-                                    get_guild_invites(&inner_client, request).await?.invites;
-                                Ok(TopLevelMessage::ChildMessage(TopLevelScreenMessage::GuildSettings(Message::Invite(
-                                    InviteMessage::InvitesLoaded(invites),
-                                ))))
+                                let invites = get_guild_invites(&inner_client, request).await?.invites;
+                                Ok(TopLevelMessage::ChildMessage(TopLevelScreenMessage::GuildSettings(
+                                    Message::Invite(InviteMessage::InvitesLoaded(invites)),
+                                )))
                             },
-                            |result| {
-                                result.unwrap_or_else(|err| TopLevelMessage::Error(Box::new(err)))
-                            },
+                            |result| result.unwrap_or_else(|err| TopLevelMessage::Error(Box::new(err))),
                         );
                     }
                     _ => {}
@@ -99,12 +95,7 @@ impl GuildSettings {
         Command::none()
     }
 
-    pub fn view(
-        &mut self,
-        theme: Theme,
-        client: &Client,
-        thumbnail_cache: &ThumbnailCache,
-    ) -> Element<'_, Message> {
+    pub fn view(&mut self, theme: Theme, client: &Client, thumbnail_cache: &ThumbnailCache) -> Element<'_, Message> {
         let position = iced_aw::TabBarPosition::Top;
         Tabs::new(self.active_tab, Message::TabSelected)
             .push(
@@ -121,7 +112,6 @@ impl GuildSettings {
             .icon_font(ICON_FONT)
             .tab_bar_position(position)
             .into()
-
     }
 
     pub fn on_error(&mut self, error: ClientError) -> Command<TopLevelMessage> {
@@ -142,10 +132,9 @@ trait Tab {
         theme: Theme,
         thumbnail_cache: &ThumbnailCache,
     ) -> Element<'_, Message> {
-        let column =
-            Column::new()
-                .spacing(20)
-                .push(self.content(client, meta_data, theme, thumbnail_cache));
+        let column = Column::new()
+            .spacing(20)
+            .push(self.content(client, meta_data, theme, thumbnail_cache));
 
         Container::new(column)
             .width(Length::Fill)

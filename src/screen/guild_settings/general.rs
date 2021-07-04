@@ -1,24 +1,17 @@
-use crate::screen::guild_settings::TabLabel;
 use super::{
+    super::{Message as TopLevelMessage, Screen as TopLevelScreen, ScreenMessage as TopLevelScreenMessage},
     GuildMetaData,
-    super::{
-        Screen as TopLevelScreen,
-        ScreenMessage as TopLevelScreenMessage,
-        Message as TopLevelMessage,
-    },
 };
+use crate::screen::guild_settings::TabLabel;
 use crate::{
-    client::{
-        Client,
-        error::ClientError,
-    },
+    client::{error::ClientError, Client},
     component::*,
+    label, label_button, length,
     screen::{
         guild_settings::{Message as ParentMessage, Tab},
         select_upload_files,
     },
     style::{Theme, PADDING},
-    label, length, label_button,
 };
 use client::harmony_rust_sdk::client::api::chat::guild::{update_guild_information, UpdateGuildInformation};
 use iced_aw::Icon;
@@ -77,23 +70,21 @@ impl GeneralTab {
                 return Command::perform(
                     async move {
                         let guild_info_req_builder = UpdateGuildInformation::new(guild_id_inner);
-                        let guild_info_req = UpdateGuildInformation::new_guild_name(
-                            guild_info_req_builder,
-                            current_name,
-                        );
+                        let guild_info_req =
+                            UpdateGuildInformation::new_guild_name(guild_info_req_builder, current_name);
                         return update_guild_information(&client_inner, guild_info_req).await;
                     },
                     |result| {
                         result.map_or_else(
                             |err| {
-                                TopLevelMessage::ChildMessage(TopLevelScreenMessage::GuildSettings(ParentMessage::General(
-                                    GeneralMessage::NameButErr(err.into()),
-                                )))
+                                TopLevelMessage::ChildMessage(TopLevelScreenMessage::GuildSettings(
+                                    ParentMessage::General(GeneralMessage::NameButErr(err.into())),
+                                ))
                             },
                             |_| {
-                                TopLevelMessage::ChildMessage(TopLevelScreenMessage::GuildSettings(ParentMessage::General(
-                                    GeneralMessage::NameButSuccess(),
-                                )))
+                                TopLevelMessage::ChildMessage(TopLevelScreenMessage::GuildSettings(
+                                    ParentMessage::General(GeneralMessage::NameButSuccess()),
+                                ))
                             },
                         )
                     },
@@ -111,10 +102,7 @@ impl GeneralTab {
                 let content_store = client.content_store_arc();
                 return Command::perform(
                     async move {
-                        let id = select_upload_files(&inner, content_store, true)
-                            .await?
-                            .remove(0)
-                            .id;
+                        let id = select_upload_files(&inner, content_store, true).await?.remove(0).id;
                         let update_info = UpdateGuildInformation::new(guild_id);
                         Ok(update_guild_information(
                             &inner,
@@ -125,17 +113,15 @@ impl GeneralTab {
                     |result| {
                         result.map_or_else(
                             |err| TopLevelMessage::Error(Box::new(err)),
-                            |_| {
-                                TopLevelMessage::Nothing
-                            },
+                            |_| TopLevelMessage::Nothing,
                         )
                     },
                 );
-            },
+            }
             GeneralMessage::GoBack() => {
-                return TopLevelScreen::push_screen_cmd(TopLevelScreen::Main(
-                    Box::new( super::super::MainScreen::default()),
-                ));
+                return TopLevelScreen::push_screen_cmd(TopLevelScreen::Main(Box::new(
+                    super::super::MainScreen::default(),
+                )));
             }
             _ => {}
         }
@@ -189,17 +175,7 @@ impl Tab for GeneralTab {
                 .map(|guild_picture| thumbnail_cache.thumbnails.get(guild_picture))
                 .flatten()
                 .map_or_else(
-                    || {
-                        Element::from(
-                            label!(guild
-                                .name
-                                .chars()
-                                .next()
-                                .unwrap_or('u')
-                                .to_ascii_uppercase())
-                            .size(30),
-                        )
-                    },
+                    || Element::from(label!(guild.name.chars().next().unwrap_or('u').to_ascii_uppercase()).size(30)),
                     |handle| Element::from(Image::new(handle.clone())),
                 ),
         );
@@ -218,7 +194,7 @@ impl Tab for GeneralTab {
                 label!("Name").into(),
                 label!(ldg_text).into(),
                 ui_text_input_row,
-                back.into()
+                back.into(),
             ]));
             content.into()
         } else {
@@ -227,7 +203,7 @@ impl Tab for GeneralTab {
                 ui_image_but,
                 label!("Name").into(),
                 ui_text_input_row,
-                back.into()
+                back.into(),
             ]));
             content.into()
         }

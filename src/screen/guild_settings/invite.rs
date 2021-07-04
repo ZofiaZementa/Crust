@@ -1,26 +1,23 @@
-use super::{
-    GuildMetaData,
-    super::Screen as TopLevelScreen,
-};
+use super::{super::Screen as TopLevelScreen, GuildMetaData};
 use crate::{
     client::error::ClientError,
-    length, label_button, space,
     component::*,
+    label_button, length,
     screen::{
         guild_settings::{Message as ParentMessage, Tab},
-        Client, Message as TopLevelMessage, ScreenMessage as TopLevelScreenMessage
+        Client, Message as TopLevelMessage, ScreenMessage as TopLevelScreenMessage,
     },
+    space,
     style::Theme,
 };
 use client::harmony_rust_sdk::{
     api::exports::hrpc::url::Url,
     client::api::chat::invite::{
-        create_invite, delete_invite, get_guild_invites_response::Invite, CreateInviteRequest,
-        DeleteInviteRequest,
+        create_invite, delete_invite, get_guild_invites_response::Invite, CreateInviteRequest, DeleteInviteRequest,
     },
 };
 use iced::Element;
-use iced_aw::{TabLabel, Icon};
+use iced_aw::{Icon, TabLabel};
 
 const POS_USES_WIDTH: u16 = 200;
 const USES_WIDTH: u16 = 80;
@@ -82,9 +79,9 @@ impl InviteTab {
                             guild_id,
                         };
                         let name = create_invite(&inner, request).await?.name;
-                        Ok(TopLevelMessage::ChildMessage(TopLevelScreenMessage::GuildSettings(ParentMessage::Invite(
-                            InviteMessage::InviteCreated((name, uses)),
-                        ))))
+                        Ok(TopLevelMessage::ChildMessage(TopLevelScreenMessage::GuildSettings(
+                            ParentMessage::Invite(InviteMessage::InviteCreated((name, uses))),
+                        )))
                     },
                     |result| result.unwrap_or_else(|err| TopLevelMessage::Error(Box::new(err))),
                 );
@@ -116,14 +113,11 @@ impl InviteTab {
                 let invite_id = meta_data.invites.as_ref().unwrap()[n].invite_id.clone();
                 return Command::perform(
                     async move {
-                        let request = DeleteInviteRequest {
-                            guild_id,
-                            invite_id,
-                        };
+                        let request = DeleteInviteRequest { guild_id, invite_id };
                         delete_invite(&inner, request).await?;
-                        Ok(TopLevelMessage::ChildMessage(TopLevelScreenMessage::GuildSettings(ParentMessage::Invite(
-                            InviteMessage::InviteDeleted(n),
-                        ))))
+                        Ok(TopLevelMessage::ChildMessage(TopLevelScreenMessage::GuildSettings(
+                            ParentMessage::Invite(InviteMessage::InviteDeleted(n)),
+                        )))
                     },
                     |result| result.unwrap_or_else(|err| TopLevelMessage::Error(Box::new(err))),
                 );
@@ -158,9 +152,7 @@ impl Tab for InviteTab {
         if let Some(invites) = &meta_data.invites {
             let mut invites_column = vec![row(vec![
                 label!("Invite Id").width(length!(+)).into(),
-                label!("Possible uses")
-                    .width(length!(= POS_USES_WIDTH))
-                    .into(),
+                label!("Possible uses").width(length!(= POS_USES_WIDTH)).into(),
                 label!("Uses").width(length!(= USES_WIDTH)).into(),
                 space!(w = DEL_WIDTH).into(),
             ])
@@ -168,21 +160,15 @@ impl Tab for InviteTab {
             let homeserver_url = client.inner().homeserver_url();
             let mut url;
             if let Some(port) = homeserver_url.port() {
-                url = Url::parse(
-                    format!("harmony://{}:{}/", homeserver_url.host().unwrap(), port).as_str(),
-                )
-                .unwrap();
+                url = Url::parse(format!("harmony://{}:{}/", homeserver_url.host().unwrap(), port).as_str()).unwrap();
             } else {
-                url = Url::parse(format!("harmony://{}/", homeserver_url.host().unwrap()).as_str())
-                    .unwrap();
+                url = Url::parse(format!("harmony://{}/", homeserver_url.host().unwrap()).as_str()).unwrap();
             }
             url.set_scheme("harmony").unwrap();
             self.delete_invite_but_states
                 .resize_with(invites.len(), Default::default);
-            for (n, (cur_invite, del_but_state)) in invites
-                .iter()
-                .zip(self.delete_invite_but_states.iter_mut())
-                .enumerate()
+            for (n, (cur_invite, del_but_state)) in
+                invites.iter().zip(self.delete_invite_but_states.iter_mut()).enumerate()
             {
                 url.set_path(&cur_invite.invite_id);
                 invites_column.push(
