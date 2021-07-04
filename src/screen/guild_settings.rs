@@ -1,6 +1,5 @@
 use iced::{Align, Column, Container, Element, Font, Length, Sandbox,
            Settings, Text, };
-
 use iced_aw::{Tabs, TabLabel};
 use crate::screen::Message as TopLevelMessage;
 mod general;
@@ -61,7 +60,7 @@ impl GuildSettings {
     pub fn new(guild_id: u64) -> Self {
         GuildSettings {
             active_tab: 0,
-            general_tab: GeneralTab::new(),
+            general_tab: GeneralTab::new(guild_id),
             current_error: String::from("")
         }
     }
@@ -86,7 +85,7 @@ impl GuildSettings {
         let position = iced_aw::TabBarPosition::Top;
 
         Tabs::new(self.active_tab, Message::TabSelected)
-            .push(self.general_tab.tab_label(), self.general_tab.view())
+            .push(self.general_tab.tab_label(), self.general_tab.view(client, theme))
             .tab_bar_style(theme)
             .icon_font(ICON_FONT)
             .tab_bar_position(position)
@@ -106,10 +105,10 @@ trait Tab {
 
     fn tab_label(&self) -> TabLabel;
 
-    fn view(&mut self) -> Element<'_, Message> {
+    fn view(&mut self, client: &Client, theme: Theme) -> Element<'_, Message> {
         let column = Column::new()
             .spacing(20)
-            .push(self.content());
+            .push(self.content(client, theme));
 
         Container::new(column)
             .width(Length::Fill)
@@ -117,8 +116,9 @@ trait Tab {
             .align_x(Align::Center)
             .align_y(Align::Center)
             .padding(TAB_PADDING)
+            .style(theme)
             .into()
     }
 
-    fn content(&mut self) -> Element<'_, Message>;
+    fn content(&mut self, client: &Client, theme: Theme) -> Element<'_, Message>;
 }
