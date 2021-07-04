@@ -77,7 +77,7 @@ impl GuildSettings {
     pub fn new(guild_id: u64) -> Self {
         GuildSettings {
             guild_id,
-            active_tab: 1,
+            active_tab: 0,
             general_tab: GeneralTab::new(guild_id),
             invite_tab: InviteTab::default(),
             current_error: String::from(""),
@@ -95,7 +95,7 @@ impl GuildSettings {
             Message::TabSelected(selected) => {
                 self.active_tab = selected;
                 match selected {
-                    2 => {
+                    1 => {
                         // Invite tab
                         let guild_id = self.guild_id;
                         let inner_client = client.inner().clone();
