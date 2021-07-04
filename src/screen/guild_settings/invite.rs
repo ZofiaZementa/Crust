@@ -1,8 +1,8 @@
 use super::GuildMetaData;
 use super::super::Screen as TopLevelScreen;
+use crate::client::error::ClientError;
 use crate::{
-    length,
-    label_button,
+    length, label_button, space,
     component::*,
     screen::{
         guild_settings::{Icon, Message as ParentMessage, Tab},
@@ -14,12 +14,15 @@ use harmony_rust_sdk::{
     api::exports::hrpc::url::Url,
     client::api::chat::invite::{
         create_invite, delete_invite, get_guild_invites_response::Invite, CreateInviteRequest,
-        DeleteInvite,
+        DeleteInviteRequest,
     },
 };
 use iced::{Column, Element};
 use iced_aw::TabLabel;
-use crate::client::error::ClientError;
+
+const POS_USES_WIDTH: u16 = 200;
+const USES_WIDTH: u16 = 80;
+const DEL_WIDTH: u16 = 40;
 
 #[derive(Debug, Clone)]
 pub enum InviteMessage {
@@ -29,6 +32,8 @@ pub enum InviteMessage {
     InviteCreated((String, i32)),
     InvitesLoaded(Vec<Invite>),
     GoBack(),
+    DeleteInvitePressed(usize),
+    InviteDeleted(usize),
     Nothing,
 }
 
@@ -41,9 +46,8 @@ pub struct InviteTab {
     create_invite_but_state: button::State,
     invite_list_state: scrollable::State,
     back_but_state: button::State,
+    delete_invite_but_states: Vec<button::State>,
 }
-
-// TODO delete invites
 
 impl InviteTab {
     pub fn update(
@@ -68,7 +72,7 @@ impl InviteTab {
                     async move {
                         let uses: i32 = match uses.parse() {
                             Ok(val) => val,
-                            Err(err) => return Err(ClientError::Custom(err.to_string()))
+                            Err(err) => return Err(ClientError::Custom(err.to_string())),
                         };
                         let request = CreateInviteRequest {
                             name,
@@ -101,10 +105,30 @@ impl InviteTab {
                 }
             }
             InviteMessage::GoBack() => {
-                return TopLevelScreen::push_screen_cmd(TopLevelScreen::Main(
-                    Box::new( super::super::MainScreen::default()),
-                ));
-            },
+                return TopLevelScreen::push_screen_cmd(TopLevelScreen::Main(Box::new(
+                    super::super::MainScreen::default(),
+                )));
+            }
+            InviteMessage::DeleteInvitePressed(n) => {
+                let inner = client.inner().clone();
+                let invite_id = meta_data.invites.as_ref().unwrap()[n].invite_id.clone();
+                return Command::perform(
+                    async move {
+                        let request = DeleteInviteRequest {
+                            guild_id,
+                            invite_id,
+                        };
+                        delete_invite(&inner, request).await?;
+                        Ok(TopLevelMessage::ChildMessage(TopLevelScreenMessage::GuildSettings(ParentMessage::Invite(
+                            InviteMessage::InviteDeleted(n),
+                        ))))
+                    },
+                    |result| result.unwrap_or_else(|err| TopLevelMessage::Error(Box::new(err))),
+                );
+            }
+            InviteMessage::InviteDeleted(n) => {
+                meta_data.invites.as_mut().unwrap().remove(n);
+            }
             _ => {}
         }
 
@@ -129,13 +153,16 @@ impl Tab for InviteTab {
         _: &ThumbnailCache,
     ) -> Element<'_, ParentMessage> {
         let mut widgets = vec![];
-        let mut back = label_button!(&mut self.back_but_state, "Back").style(theme);
-        back = back.on_press(ParentMessage::Invite(InviteMessage::GoBack()));
         if let Some(invites) = &meta_data.invites {
-            let mut invite_list = Scrollable::new(&mut self.invite_list_state).width(length!(+));
-            let mut invite_url_column = vec![label!["Invite Id"].into()];
-            let mut possible_uses_column = vec![label!["Possible uses"].into()];
-            let mut uses_column = vec![label!["Uses"].into()];
+            let mut invites_column = vec![row(vec![
+                label!("Invite Id").width(length!(+)).into(),
+                label!("Possible uses")
+                    .width(length!(= POS_USES_WIDTH))
+                    .into(),
+                label!("Uses").width(length!(= USES_WIDTH)).into(),
+                space!(w = DEL_WIDTH).into(),
+            ])
+            .into()];
             let homeserver_url = client.inner().homeserver_url();
             let mut url;
             if let Some(port) = homeserver_url.port() {
@@ -148,22 +175,37 @@ impl Tab for InviteTab {
                     .unwrap();
             }
             url.set_scheme("harmony").unwrap();
-            for cur_invite in invites {
+            self.delete_invite_but_states
+                .resize_with(invites.len(), Default::default);
+            for (n, (cur_invite, del_but_state)) in invites
+                .iter()
+                .zip(self.delete_invite_but_states.iter_mut())
+                .enumerate()
+            {
                 url.set_path(&cur_invite.invite_id);
-                invite_url_column.push(label![url.as_str().clone()].into());
-                possible_uses_column.push(label![cur_invite.possible_uses.to_string()].into());
-                uses_column.push(label![cur_invite.use_count.to_string()].into());
+                invites_column.push(
+                    row(vec![
+                        label!(url.as_str().clone()).width(length!(+)).into(),
+                        label!(cur_invite.possible_uses.to_string())
+                            .width(length!(= POS_USES_WIDTH))
+                            .into(),
+                        label!(cur_invite.use_count.to_string())
+                            .width(length!(= USES_WIDTH))
+                            .into(),
+                        Button::new(del_but_state, label!("Del"))
+                            .width(length!(= DEL_WIDTH))
+                            .style(theme)
+                            .on_press(ParentMessage::Invite(InviteMessage::DeleteInvitePressed(n)))
+                            .into(),
+                    ])
+                    .into(),
+                );
             }
-            invite_list = invite_list.push(row(vec![
-                column(invite_url_column).width(length!(+)).into(),
-                column(possible_uses_column).width(length!(= 200)).into(),
-                column(uses_column).width(length!(= 80)).into(),
-            ]));
-            widgets.push(invite_list.into());
+            widgets.push(column(invites_column).into());
         } else {
-            widgets.push(label!["Fetching invites"].into());
+            widgets.push(label!("Fetching invites").into());
         }
-
+        widgets.push(space!(h = 20).into());
         widgets.push(
             row(vec![
                 TextInput::new(
@@ -183,15 +225,21 @@ impl Tab for InviteTab {
                 .width(length!(= 200))
                 .style(theme)
                 .into(),
-                Button::new(&mut self.create_invite_but_state, label!["Create"])
+                Button::new(&mut self.create_invite_but_state, label!("Create"))
                     .style(theme)
                     .on_press(ParentMessage::Invite(InviteMessage::CreateInvitePressed))
                     .into(),
             ])
             .into(),
         );
-        widgets.push(back.into());
+        widgets.push(space!(h = 20).into());
+        widgets.push(
+            label_button!(&mut self.back_but_state, "Back")
+                .style(theme)
+                .on_press(ParentMessage::Invite(InviteMessage::GoBack()))
+                .into(),
+        );
 
-        Column::with_children(widgets).into()
+        column(widgets).into()
     }
 }
