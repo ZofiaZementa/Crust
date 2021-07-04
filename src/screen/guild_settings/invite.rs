@@ -19,6 +19,7 @@ use harmony_rust_sdk::{
 };
 use iced::{Column, Element};
 use iced_aw::TabLabel;
+use crate::client::error::ClientError;
 
 #[derive(Debug, Clone)]
 pub enum InviteMessage {
