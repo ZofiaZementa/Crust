@@ -63,12 +63,14 @@ impl GeneralTab {
                 self.name_edit_field = text;
             }
             GeneralMessage::NameButPressed() => {
+                //Show loading text via a Option
                 self.loading_text = Some("Updating ...".parse().unwrap());
                 let current_name = self.name_edit_field.clone();
                 let client_inner = client.inner().clone();
                 let guild_id_inner = guild_id.clone();
                 return Command::perform(
                     async move {
+                        //Build the GuildInformationRequest and update the Name
                         let guild_info_req_builder = UpdateGuildInformation::new(guild_id_inner);
                         let guild_info_req =
                             UpdateGuildInformation::new_guild_name(guild_info_req_builder, current_name);
@@ -102,6 +104,7 @@ impl GeneralTab {
                 let content_store = client.content_store_arc();
                 return Command::perform(
                     async move {
+                        //Select new Guild image and Upload
                         let id = select_upload_files(&inner, content_store, true).await?.remove(0).id;
                         let update_info = UpdateGuildInformation::new(guild_id);
                         Ok(update_guild_information(
@@ -135,7 +138,6 @@ impl Tab for GeneralTab {
     }
 
     fn tab_label(&self) -> TabLabel {
-        //TabLabel::Text(self.title())
         TabLabel::IconText(Icon::Gear.into(), self.title())
     }
 
