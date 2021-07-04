@@ -206,8 +206,8 @@ impl Tab for GeneralTab {
 
         let ui_image_but = Button::new(&mut self.icon_edit_but_state, ui_update_guild_icon)
             .on_press(ParentMessage::General(GeneralMessage::UploadGuildImage()))
-            .height((length!(= 50)))
-            .width((length!(= 50)))
+            .height(length!(= 50))
+            .width(length!(= 50))
             .style(theme)
             .into();
 

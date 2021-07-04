@@ -58,10 +58,6 @@ impl GuildSettings {
         }
     }
 
-    fn title(&self) -> String {
-        String::from("Guild settings")
-    }
-
     pub fn update(&mut self, message: Message, client: &Client) -> Command<TopLevelMessage> {
         match message {
             Message::TabSelected(selected) => {
