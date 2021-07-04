@@ -3,19 +3,19 @@ use iced::{Align, Column, Container, Element, Font, Length, Sandbox,
 use iced_aw::{Tabs, TabLabel};
 use crate::screen::Message as TopLevelMessage;
 mod general;
-use crate::screen::guild_settings::general::{GeneralMessage, GeneralTab};
-use crate::component::Command;
-
-
-
-const HEADER_SIZE: u16 = 32;
-const TAB_PADDING: u16 = 16;
-
+mod invite;
+use crate::screen::guild_settings::{
+    general::{GeneralMessage, GeneralTab},
+    invite::{InviteMessage, InviteTab},
+};
 use crate::{
     client::{error::ClientError, Client},
     component::*,
     style::*,
 };
+
+const HEADER_SIZE: u16 = 32;
+const TAB_PADDING: u16 = 16;
 
 const ICON_FONT: Font = iced::Font::External{
     name: "Icons",
@@ -45,6 +45,7 @@ impl From<Icon> for char {
 pub struct GuildSettings {
     active_tab: usize,
     general_tab: GeneralTab,
+    invite_tab: InviteTab,
     current_error: String
 }
 
@@ -52,6 +53,7 @@ pub struct GuildSettings {
 pub enum Message {
     TabSelected(usize),
     General(GeneralMessage),
+    Invite(InviteMessage),
 }
 
 
@@ -61,6 +63,7 @@ impl GuildSettings {
         GuildSettings {
             active_tab: 0,
             general_tab: GeneralTab::new(guild_id),
+            invite_tab: InviteTab::default(),
             current_error: String::from("")
         }
     }
@@ -77,6 +80,7 @@ impl GuildSettings {
             Message::General(message) => {
                 self.general_tab.update(message)
             },
+            _ => {}
         }
         Command::none()
     }
@@ -86,6 +90,7 @@ impl GuildSettings {
 
         Tabs::new(self.active_tab, Message::TabSelected)
             .push(self.general_tab.tab_label(), self.general_tab.view(client, theme))
+            .push(self.invite_tab.tab_label(), self.invite_tab.view(client, theme))
             .tab_bar_style(theme)
             .icon_font(ICON_FONT)
             .tab_bar_position(position)
