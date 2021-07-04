@@ -87,6 +87,8 @@ impl InviteTab {
                 );
             }
             InviteMessage::InvitesLoaded(invites) => {
+                // Triggered if Invites are loaded, loading is started in guild_settings, as soon as the invite-tab
+                // is selected
                 meta_data.invites = Some(invites);
             }
             InviteMessage::InviteCreated((name, uses)) => {
@@ -104,6 +106,7 @@ impl InviteTab {
                 }
             }
             InviteMessage::GoBack() => {
+                // Return to main screen
                 return TopLevelScreen::push_screen_cmd(TopLevelScreen::Main(Box::new(
                     super::super::MainScreen::default(),
                 )));
@@ -149,7 +152,9 @@ impl Tab for InviteTab {
         _: &ThumbnailCache,
     ) -> Element<'_, ParentMessage> {
         let mut widgets = vec![];
+        // If there are any invites, create invite list
         if let Some(invites) = &meta_data.invites {
+            // Create header for invite list
             let mut invites_column = vec![row(vec![
                 label!("Invite Id").width(length!(+)).into(),
                 label!("Possible uses").width(length!(= POS_USES_WIDTH)).into(),
@@ -157,6 +162,7 @@ impl Tab for InviteTab {
                 space!(w = DEL_WIDTH).into(),
             ])
             .into()];
+            // Recreation of Url is neccessary because otherwise the scheme of the url can't be set to `harmony://`
             let homeserver_url = client.inner().homeserver_url();
             let mut url;
             if let Some(port) = homeserver_url.port() {
@@ -167,6 +173,7 @@ impl Tab for InviteTab {
             url.set_scheme("harmony").unwrap();
             self.delete_invite_but_states
                 .resize_with(invites.len(), Default::default);
+            // Create each line of the invite list
             for (n, (cur_invite, del_but_state)) in
                 invites.iter().zip(self.delete_invite_but_states.iter_mut()).enumerate()
             {
@@ -190,10 +197,12 @@ impl Tab for InviteTab {
                 );
             }
             widgets.push(column(invites_column).into());
+        // If there aren't any invites
         } else {
             widgets.push(label!("Fetching invites").into());
         }
         widgets.push(space!(h = 20).into());
+        // Invite Creation fields
         widgets.push(
             row(vec![
                 TextInput::new(
@@ -221,6 +230,7 @@ impl Tab for InviteTab {
             .into(),
         );
         widgets.push(space!(h = 20).into());
+        //Back button
         widgets.push(
             label_button!(&mut self.back_but_state, "Back")
                 .style(theme)

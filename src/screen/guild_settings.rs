@@ -64,6 +64,8 @@ impl GuildSettings {
                 match selected {
                     1 => {
                         // Invite tab
+                        // Is Triggered when the invite tab is clicked
+                        // Triggers the fetch of the invites, receiving is handled in invite.rs
                         let guild_id = self.guild_id;
                         let inner_client = client.inner().clone();
                         return Command::perform(
