@@ -20,7 +20,7 @@ pub enum GeneralMessage {
     NameButPressed(),
     NameButErr(ClientError),
     NameButSuccess(),
-    Nothing
+    Nothing,
 }
 
 #[derive(Debug)]
@@ -30,11 +30,10 @@ pub struct GeneralTab {
     name_edit_but_state: button::State,
     loading_text: String,
     loading_show: bool,
-    guild_id: u64
+    guild_id: u64,
 }
 
 impl GeneralTab {
-
     pub fn new(guild_id: u64) -> Self {
         GeneralTab {
             name_edit_state: Default::default(),
@@ -42,15 +41,20 @@ impl GeneralTab {
             name_edit_but_state: Default::default(),
             loading_text: Default::default(),
             loading_show: false,
-            guild_id
+            guild_id,
         }
     }
 
-    pub fn update(&mut self, message: GeneralMessage, client: &Client, guild_id: u64) -> Command<TopLevelScreenMessage> {
+    pub fn update(
+        &mut self,
+        message: GeneralMessage,
+        client: &Client,
+        guild_id: u64,
+    ) -> Command<TopLevelScreenMessage> {
         match message {
             GeneralMessage::NameChanged(text) => {
                 self.name_edit_field = text;
-            },
+            }
             GeneralMessage::NameButPressed() => {
                 self.loading_show = true;
                 self.loading_text = "Updating ...".parse().unwrap();
@@ -60,29 +64,36 @@ impl GeneralTab {
                 Command::perform(
                     async move {
                         let guild_info_req_builder = UpdateGuildInformation::new(guild_id_inner);
-                        let guild_info_req = UpdateGuildInformation::new_guild_name(guild_info_req_builder,current_name);
-                        return update_guild_information(&client_inner, guild_info_req).await
+                        let guild_info_req = UpdateGuildInformation::new_guild_name(
+                            guild_info_req_builder,
+                            current_name,
+                        );
+                        return update_guild_information(&client_inner, guild_info_req).await;
                     },
-                        |result| {
-                            result.map_or_else(
-                                |err| {
-                                    TopLevelScreenMessage::GuildSettings(ParentMessage::General(GeneralMessage::NameButErr(err.into())))
-                                },
-                                |ok| {
-                                    TopLevelScreenMessage::GuildSettings(ParentMessage::General(GeneralMessage::NameButSuccess()))
-                                }
-                            );
-                        }
+                    |result| {
+                        result.map_or_else(
+                            |err| {
+                                TopLevelScreenMessage::GuildSettings(ParentMessage::General(
+                                    GeneralMessage::NameButErr(err.into()),
+                                ))
+                            },
+                            |_| {
+                                TopLevelScreenMessage::GuildSettings(ParentMessage::General(
+                                    GeneralMessage::NameButSuccess(),
+                                ))
+                            },
+                        );
+                    },
                 );
-            },
+            }
             GeneralMessage::NameButErr(err) => {
                 self.loading_show = false;
                 TopLevelMessage::Error(Box::new(err.into()));
-            },
+            }
             GeneralMessage::NameButSuccess() => {
                 self.loading_text = "Name updated".to_string();
                 self.loading_show = true;
-            },
+            }
             _ => {}
         }
         Command::none()
@@ -90,7 +101,6 @@ impl GeneralTab {
 }
 
 impl Tab for GeneralTab {
-
     fn title(&self) -> String {
         String::from("General")
     }
@@ -101,49 +111,37 @@ impl Tab for GeneralTab {
     }
 
     fn content(&mut self, client: &Client, theme: Theme) -> Element<'_, ParentMessage> {
-        if !self.loading_show {
-            let content= Container::new(
-                column(vec![
-
-                    label!("Name").into(),
-                    row(vec![
-                        TextInput::new(&mut self.name_edit_state, client.guilds.get(&self.guild_id).unwrap().name.as_str(),
-                                       self.name_edit_field.as_str(),
-                                       |text| ParentMessage::General(GeneralMessage::NameChanged(text)))
-                            .style(theme)
-                            .padding(PADDING / 2)
-                            .width(length!(= 300))
-                            .into(),
-                        Button::new(&mut self.name_edit_but_state,
-                                    label!["Update"]
-                        ).on_press(ParentMessage::General(GeneralMessage::NameButPressed()))
-                            .style(theme).into(),
-                    ]).into(), ]
+        let ui_text_input_row =
+            row(vec![
+                TextInput::new(
+                    &mut self.name_edit_state,
+                    client.guilds.get(&self.guild_id).unwrap().name.as_str(),
+                    self.name_edit_field.as_str(),
+                    |text| ParentMessage::General(GeneralMessage::NameChanged(text)),
                 )
-            );
+                    .style(theme)
+                    .padding(PADDING / 2)
+                    .width(length!(= 300))
+                    .into(),
+                Button::new(&mut self.name_edit_but_state, label!["Update"])
+                    .on_press(ParentMessage::General(GeneralMessage::NameButPressed()))
+                    .style(theme)
+                    .into(),
+            ]).into();
+
+        if !self.loading_show {
+            let content = Container::new(column(vec![
+                label!("Name").into(),
+                ui_text_input_row,
+            ]));
             content.into()
         } else {
-            let content= Container::new(
-                column(vec![
-                    label!(&self.loading_text).into(),
-                    label!("Name").into(),
-                    row(vec![
-                        TextInput::new(&mut self.name_edit_state, client.guilds.get(&self.guild_id).unwrap().name.as_str(),
-                                       self.name_edit_field.as_str(),
-                                       |text| ParentMessage::General(GeneralMessage::NameChanged(text)))
-                            .style(theme)
-                            .padding(PADDING / 2)
-                            .width(length!(= 300))
-                            .into(),
-                        Button::new(&mut self.name_edit_but_state,
-                                    label!["Update"]
-                        ).on_press(ParentMessage::General(GeneralMessage::NameButPressed()))
-                            .style(theme).into(),
-                    ]).into(), ]
-                )
-            );
+            let content = Container::new(column(vec![
+                label!(&self.loading_text).into(),
+                label!("Name").into(),
+                ui_text_input_row
+            ]));
             content.into()
         }
-
     }
 }

@@ -17,7 +17,7 @@ use crate::{
 const HEADER_SIZE: u16 = 32;
 const TAB_PADDING: u16 = 16;
 
-const ICON_FONT: Font = iced::Font::External{
+const ICON_FONT: Font = iced::Font::External {
     name: "Icons",
     bytes: include_bytes!("../fonts/icons.ttf"),
 };
@@ -40,14 +40,13 @@ impl From<Icon> for char {
     }
 }
 
-
 #[derive(Debug)]
 pub struct GuildSettings {
     active_tab: usize,
     general_tab: GeneralTab,
     invite_tab: InviteTab,
     current_error: String,
-    guild_id: u64
+    guild_id: u64,
 }
 
 #[derive(Debug, Clone)]
@@ -57,16 +56,14 @@ pub enum Message {
     Invite(InviteMessage),
 }
 
-
 impl GuildSettings {
-
     pub fn new(guild_id: u64) -> Self {
         GuildSettings {
             active_tab: 0,
             general_tab: GeneralTab::new(guild_id),
             invite_tab: InviteTab::default(),
             current_error: String::from(""),
-            guild_id
+            guild_id,
         }
     }
 
@@ -76,12 +73,10 @@ impl GuildSettings {
 
     pub fn update(&mut self, message: Message, client: &Client) -> Command<TopLevelMessage> {
         match message {
-            Message::TabSelected(selected) => {
-                self.active_tab = selected
-            },
+            Message::TabSelected(selected) => self.active_tab = selected,
             Message::General(message) => {
                 self.general_tab.update(message, client, self.guild_id);
-            },
+            }
             _ => {}
         }
         Command::none()
@@ -91,31 +86,34 @@ impl GuildSettings {
         let position = iced_aw::TabBarPosition::Top;
 
         Tabs::new(self.active_tab, Message::TabSelected)
-            .push(self.general_tab.tab_label(), self.general_tab.view(client, theme))
-            .push(self.invite_tab.tab_label(), self.invite_tab.view(client, theme))
+            .push(
+                self.general_tab.tab_label(),
+                self.general_tab.view(client, theme),
+            )
+            .push(
+                self.invite_tab.tab_label(),
+                self.invite_tab.view(client, theme),
+            )
             .tab_bar_style(theme)
             .icon_font(ICON_FONT)
             .tab_bar_position(position)
             .into()
     }
 
-
     pub fn on_error(&mut self, error: ClientError) -> Command<TopLevelMessage> {
+        self.current_error = error.to_string();
         self.current_error = error.to_string();
         Command::none()
     }
 }
 
 trait Tab {
-
     fn title(&self) -> String;
 
     fn tab_label(&self) -> TabLabel;
 
     fn view(&mut self, client: &Client, theme: Theme) -> Element<'_, Message> {
-        let column = Column::new()
-            .spacing(20)
-            .push(self.content(client, theme));
+        let column = Column::new().spacing(20).push(self.content(client, theme));
 
         Container::new(column)
             .width(Length::Fill)
