@@ -1,6 +1,8 @@
 use super::GuildMetaData;
+use super::super::Screen as TopLevelScreen;
 use crate::{
     length,
+    label_button,
     component::*,
     screen::{
         guild_settings::{Icon, Message as ParentMessage, Tab},
@@ -25,6 +27,7 @@ pub enum InviteMessage {
     CreateInvitePressed,
     InviteCreated((String, i32)),
     InvitesLoaded(Vec<Invite>),
+    GoBack(),
     Nothing,
 }
 
@@ -36,6 +39,7 @@ pub struct InviteTab {
     invite_uses_value: String,
     create_invite_but_state: button::State,
     invite_list_state: scrollable::State,
+    back_but_state: button::State,
 }
 
 // TODO delete invites
@@ -91,6 +95,11 @@ impl InviteTab {
                     meta_data.invites = Some(vec![new_invite]);
                 }
             }
+            InviteMessage::GoBack() => {
+                return TopLevelScreen::push_screen_cmd(TopLevelScreen::Main(
+                    Box::new( super::super::MainScreen::default()),
+                ));
+            },
             _ => {}
         }
 
@@ -115,6 +124,8 @@ impl Tab for InviteTab {
         _: &ThumbnailCache,
     ) -> Element<'_, ParentMessage> {
         let mut widgets = vec![];
+        let mut back = label_button!(&mut self.back_but_state, "Back").style(theme);
+        back = back.on_press(ParentMessage::Invite(InviteMessage::GoBack()));
         if let Some(invites) = &meta_data.invites {
             let mut invite_list = Scrollable::new(&mut self.invite_list_state).width(length!(+));
             let mut invite_url_column = vec![label!["Invite Id"].into()];
@@ -174,6 +185,7 @@ impl Tab for InviteTab {
             ])
             .into(),
         );
+        widgets.push(back.into());
 
         Column::with_children(widgets).into()
     }

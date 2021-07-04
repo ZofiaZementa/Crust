@@ -16,10 +16,12 @@ use crate::{
     component::*,
     style::*,
 };
+
 use super::Screen as TopLevelScreen;
 use harmony_rust_sdk::client::api::chat::invite::{
     get_guild_invites, get_guild_invites_response::Invite, GetGuildInvitesRequest,
 };
+use iced_aw::native::tabs::Renderer;
 
 const TAB_PADDING: u16 = 16;
 
@@ -61,6 +63,7 @@ pub struct GuildSettings {
     invite_tab: InviteTab,
     current_error: String,
     meta_data: GuildMetaData,
+    back_button: button::State,
 }
 
 #[derive(Debug, Clone)]
@@ -79,6 +82,7 @@ impl GuildSettings {
             invite_tab: InviteTab::default(),
             current_error: String::from(""),
             meta_data: GuildMetaData { invites: None },
+            back_button: Default::default()
         }
     }
 
@@ -89,35 +93,28 @@ impl GuildSettings {
     pub fn update(&mut self, message: Message, client: &Client) -> Command<TopLevelMessage> {
         match message {
             Message::TabSelected(selected) => {
-                if selected > 0 {
-                    self.active_tab = selected;
-                    match selected {
-                        2 => {
-                            // Invite tab
-                            let guild_id = self.guild_id;
-                            let inner_client = client.inner().clone();
-                            return Command::perform(
-                                async move {
-                                    let request = GetGuildInvitesRequest { guild_id };
-                                    let invites =
-                                        get_guild_invites(&inner_client, request).await?.invites;
-                                    Ok(TopLevelMessage::ChildMessage(TopLevelScreenMessage::GuildSettings(Message::Invite(
-                                        InviteMessage::InvitesLoaded(invites),
-                                    ))))
-                                },
-                                |result| {
-                                    result.unwrap_or_else(|err| TopLevelMessage::Error(Box::new(err)))
-                                },
-                            );
-                        }
-                        _ => {}
-                    };
-                } else {
-                    //Back button
-                    return TopLevelScreen::push_screen_cmd(TopLevelScreen::Main(
-                       Box::new( super::MainScreen::default()),
-                    ));
-                }
+                self.active_tab = selected;
+                match selected {
+                    2 => {
+                        // Invite tab
+                        let guild_id = self.guild_id;
+                        let inner_client = client.inner().clone();
+                        return Command::perform(
+                            async move {
+                                let request = GetGuildInvitesRequest { guild_id };
+                                let invites =
+                                    get_guild_invites(&inner_client, request).await?.invites;
+                                Ok(TopLevelMessage::ChildMessage(TopLevelScreenMessage::GuildSettings(Message::Invite(
+                                    InviteMessage::InvitesLoaded(invites),
+                                ))))
+                            },
+                            |result| {
+                                result.unwrap_or_else(|err| TopLevelMessage::Error(Box::new(err)))
+                            },
+                        );
+                    }
+                    _ => {}
+                };
             }
             Message::General(message) => {
                 return self
@@ -141,12 +138,7 @@ impl GuildSettings {
         thumbnail_cache: &ThumbnailCache,
     ) -> Element<'_, Message> {
         let position = iced_aw::TabBarPosition::Top;
-
         Tabs::new(self.active_tab, Message::TabSelected)
-            .push(
-                TabLabel::IconText(Icon::Back.into(), String::from("Back")).into(),
-                label!("Back")
-            )
             .push(
                 self.general_tab.tab_label(),
                 self.general_tab
@@ -161,6 +153,7 @@ impl GuildSettings {
             .icon_font(ICON_FONT)
             .tab_bar_position(position)
             .into()
+
     }
 
     pub fn on_error(&mut self, error: ClientError) -> Command<TopLevelMessage> {

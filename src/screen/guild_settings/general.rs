@@ -1,4 +1,5 @@
 use crate::screen::guild_settings::TabLabel;
+use super::super::Screen as TopLevelScreen;
 use super::GuildMetaData;
 use crate::client::Client;
 use crate::component::*;
@@ -7,7 +8,7 @@ use crate::screen::main::Message::GuildChanged;
 use crate::screen::select_upload_files;
 use crate::screen::Message::MessageEdited;
 use crate::style::{Theme, PADDING};
-use crate::{label, length};
+use crate::{label, length, label_button};
 use iced_native::Widget;
 use super::super::{
     ScreenMessage as TopLevelScreenMessage,
@@ -23,6 +24,7 @@ pub enum GeneralMessage {
     NameButPressed(),
     NameButErr(ClientError),
     NameButSuccess(),
+    GoBack(),
     UploadGuildImage(),
     Nothing,
 }
@@ -33,6 +35,7 @@ pub struct GeneralTab {
     name_edit_field: String,
     name_edit_but_state: button::State,
     icon_edit_but_state: button::State,
+    back_but_state: button::State,
     loading_text: Option<String>,
     guild_id: u64,
 }
@@ -44,6 +47,7 @@ impl GeneralTab {
             name_edit_field: Default::default(),
             name_edit_but_state: Default::default(),
             icon_edit_but_state: Default::default(),
+            back_but_state: Default::default(),
             loading_text: None,
             guild_id,
         }
@@ -122,6 +126,11 @@ impl GeneralTab {
                         )
                     },
                 );
+            },
+            GeneralMessage::GoBack() => {
+                return TopLevelScreen::push_screen_cmd(TopLevelScreen::Main(
+                    Box::new( super::super::MainScreen::default()),
+                ));
             }
             _ => {}
         }
@@ -148,6 +157,8 @@ impl Tab for GeneralTab {
     ) -> Element<'_, ParentMessage> {
         let name_edit_but_state = &mut self.name_edit_but_state;
         let guild = client.guilds.get(&self.guild_id).unwrap();
+        let mut back = label_button!(&mut self.back_but_state, "Back").style(theme);
+        back = back.on_press(ParentMessage::General(GeneralMessage::GoBack()));
         let ui_text_input_row = row(vec![
             TextInput::new(
                 &mut self.name_edit_state,
@@ -202,6 +213,7 @@ impl Tab for GeneralTab {
                 label!("Name").into(),
                 label!(ldg_text).into(),
                 ui_text_input_row,
+                back.into()
             ]));
             content.into()
         } else {
@@ -210,6 +222,7 @@ impl Tab for GeneralTab {
                 ui_image_but,
                 label!("Name").into(),
                 ui_text_input_row,
+                back.into()
             ]));
             content.into()
         }
