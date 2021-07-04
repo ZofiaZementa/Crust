@@ -1,5 +1,4 @@
-use iced::{Align, Column, Container, Element, Font, Length, Sandbox,
-           Settings, Text, };
+use iced::{Align, Column, Container, Element, Length};
 use iced_aw::{Tabs, TabLabel};
 use crate::screen::{
     ScreenMessage as TopLevelScreenMessage,
@@ -17,7 +16,6 @@ use crate::{
     style::*,
 };
 
-use super::Screen as TopLevelScreen;
 use client::harmony_rust_sdk::client::api::chat::invite::{
     get_guild_invites, get_guild_invites_response::Invite, GetGuildInvitesRequest,
 };

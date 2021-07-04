@@ -4,19 +4,15 @@ use super::GuildMetaData;
 use crate::client::Client;
 use crate::component::*;
 use crate::screen::guild_settings::{Message as ParentMessage, Tab};
-use crate::screen::main::Message::GuildChanged;
 use crate::screen::select_upload_files;
-use crate::screen::Message::MessageEdited;
 use crate::style::{Theme, PADDING};
 use crate::{label, length, label_button};
-use iced_native::Widget;
 use super::super::{
     ScreenMessage as TopLevelScreenMessage,
     Message as TopLevelMessage,
 };
-use crate::client::error::{ClientResult, ClientError};
+use crate::client::error::ClientError;
 use client::harmony_rust_sdk::client::api::chat::guild::{update_guild_information, UpdateGuildInformation};
-use std::error::Error;
 use iced_aw::Icon;
 
 #[derive(Debug, Clone)]

@@ -17,7 +17,7 @@ use client::harmony_rust_sdk::{
         DeleteInviteRequest,
     },
 };
-use iced::{Column, Element};
+use iced::Element;
 use iced_aw::{TabLabel, Icon};
 
 const POS_USES_WIDTH: u16 = 200;
