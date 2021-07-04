@@ -1,7 +1,9 @@
-use super::GuildMetaData;
-use super::super::Screen as TopLevelScreen;
-use crate::client::error::ClientError;
+use super::{
+    GuildMetaData,
+    super::Screen as TopLevelScreen,
+};
 use crate::{
+    client::error::ClientError,
     length, label_button, space,
     component::*,
     screen::{

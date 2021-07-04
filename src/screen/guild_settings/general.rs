@@ -1,17 +1,25 @@
 use crate::screen::guild_settings::TabLabel;
-use super::super::Screen as TopLevelScreen;
-use super::GuildMetaData;
-use crate::client::Client;
-use crate::component::*;
-use crate::screen::guild_settings::{Message as ParentMessage, Tab};
-use crate::screen::select_upload_files;
-use crate::style::{Theme, PADDING};
-use crate::{label, length, label_button};
-use super::super::{
-    ScreenMessage as TopLevelScreenMessage,
-    Message as TopLevelMessage,
+use super::{
+    GuildMetaData,
+    super::{
+        Screen as TopLevelScreen,
+        ScreenMessage as TopLevelScreenMessage,
+        Message as TopLevelMessage,
+    },
 };
-use crate::client::error::ClientError;
+use crate::{
+    client::{
+        Client,
+        error::ClientError,
+    },
+    component::*,
+    screen::{
+        guild_settings::{Message as ParentMessage, Tab},
+        select_upload_files,
+    },
+    style::{Theme, PADDING},
+    label, length, label_button,
+};
 use client::harmony_rust_sdk::client::api::chat::guild::{update_guild_information, UpdateGuildInformation};
 use iced_aw::Icon;
 

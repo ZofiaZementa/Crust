@@ -1,26 +1,26 @@
-use iced::{Align, Column, Container, Element, Length};
-use iced_aw::{Tabs, TabLabel};
-use crate::screen::{
-    ScreenMessage as TopLevelScreenMessage,
-    Message as TopLevelMessage,
-};
 mod general;
 mod invite;
-use crate::screen::guild_settings::{
-    general::{GeneralMessage, GeneralTab},
-    invite::{InviteMessage, InviteTab},
-};
+
+use iced::{Align, Column, Container, Element, Length};
+use iced_aw::{Tabs, TabLabel, ICON_FONT};
 use crate::{
+    screen::{
+        ScreenMessage as TopLevelScreenMessage,
+        Message as TopLevelMessage,
+        guild_settings::{
+            general::{GeneralMessage, GeneralTab},
+            invite::{InviteMessage, InviteTab},
+        },
+    },
     client::{error::ClientError, Client},
     component::*,
     style::*,
 };
-
 use client::harmony_rust_sdk::client::api::chat::invite::{
     get_guild_invites, get_guild_invites_response::Invite, GetGuildInvitesRequest,
 };
+
 const TAB_PADDING: u16 = 16;
-use iced_aw::ICON_FONT;
 
 #[derive(Debug)]
 pub struct GuildMetaData {
