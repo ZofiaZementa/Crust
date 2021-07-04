@@ -46,10 +46,11 @@ pub struct GuildSettings {
     active_tab: usize,
     general_tab: GeneralTab,
     invite_tab: InviteTab,
-    current_error: String
+    current_error: String,
+    guild_id: u64
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone)]
 pub enum Message {
     TabSelected(usize),
     General(GeneralMessage),
@@ -64,7 +65,8 @@ impl GuildSettings {
             active_tab: 0,
             general_tab: GeneralTab::new(guild_id),
             invite_tab: InviteTab::default(),
-            current_error: String::from("")
+            current_error: String::from(""),
+            guild_id
         }
     }
 
@@ -78,7 +80,7 @@ impl GuildSettings {
                 self.active_tab = selected
             },
             Message::General(message) => {
-                self.general_tab.update(message)
+                self.general_tab.update(message, client, self.guild_id);
             },
             _ => {}
         }

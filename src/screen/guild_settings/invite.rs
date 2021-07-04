@@ -4,7 +4,8 @@ use iced::{Column, Container, Element, Radio, Text};
 use iced_aw::{TabLabel};
 use crate::screen::guild_settings::{Tab, Message as ParentMessage, Icon};
 use crate::component::*;
-
+use crate::style::PADDING;
+use crate::length;
 use harmony_rust_sdk::{
     api::chat::InviteId,
     client::api::chat::invite::{create_invite,CreateInvite,delete_invite,DeleteInvite,},
@@ -51,11 +52,13 @@ impl Tab for InviteTab {
                     "",
                     |_| ParentMessage::Invite(InviteMessage::Nothing)
                 ).style(theme)
+                    .padding(PADDING / 2)
+                    .width(length!(= 300))
                  .into(),
                 Button::new(&mut self.create_invite_but_state,
                     label!["Create"]
                 ).style(theme)
-                 .into(),
+                    .into(),
             ])
         );
 
